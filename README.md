@@ -8,4 +8,4 @@
 
 Библиотеки для подключения (`pip install ...`):  
 - `matplotlib`  
-- `pyqt`
+- `pyqt5`
