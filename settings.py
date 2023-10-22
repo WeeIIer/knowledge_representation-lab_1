@@ -1,13 +1,15 @@
 import random
 import sqlite3
 import matplotlib.pyplot as plt
+import matplotlib
 import datetime
 import os
 import sys
+import numpy as np
 
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QHeaderView, QTableWidgetItem
 from PyQt5.QtGui import QPixmap, QPalette, QColor
-from PyQt5 import QtCore
+from PyQt5 import QtCore, Qt, QtWidgets
 
 import main_window as main_window_form
 #import resources
@@ -21,25 +23,22 @@ pyrcc5 -o resources.py resources.qrc
 """
 
 
-BUILDING = False  # Флаг, отвечающий за отладочные функции
+BUILDING = True  # Флаг, отвечающий за отладочные функции
 DIRNAME, _ = os.path.split(os.path.realpath(__file__))  # Путь к папке с исполняемым файлом
+matplotlib.use("agg")
 
 
-# ФУНКЦИЯ ДЛЯ ОБНОВЛЕНИЯ ИНТЕРФЕЙСОВ -----------------------------------------------------------------------------------
 def update_interface():
-    global DIRNAME
-
-    ui_names = [item[:-3] for item in os.listdir(f"{DIRNAME}\\HELP\\ui") if item[-2:] == "ui"]
+    ui_names = (item[:-3] for item in os.listdir(rf"{DIRNAME}\ui") if item[-2:] == "ui")
 
     for name in ui_names:
-        ui_path = f"{DIRNAME}\\HELP\\ui\\{name}.ui"  # Формирование пути к файлу .ui
-        py_path = f"{DIRNAME}\\{name}.py"  # Формирование пути к файлу .py
-        if (f"{name}.py" not in os.listdir(DIRNAME)):  # Если файла .py нет, то он будет создан
+        ui_path = rf"{DIRNAME}\ui\{name}.ui"  # Формирование пути к файлу .ui
+        py_path = rf"{DIRNAME}\{name}.py"  # Формирование пути к файлу .py
+        if f"{name}.py" not in os.listdir(DIRNAME):  # Если файла .py нет, то он будет создан
             os.system(f"pyuic5 {ui_path} -o {py_path} -x")
-        elif (os.path.getmtime(ui_path) > os.path.getmtime(py_path)):  # Если он устаревший, то он будет перезаписан
+        elif os.path.getmtime(ui_path) > os.path.getmtime(py_path):  # Если он устаревший, то он будет перезаписан
             os.system(f"pyuic5 {ui_path} -o {py_path} -x")
-if (BUILDING): update_interface()  # Запуск функции, если включён отладочный флаг!!!
-# ----------------------------------------------------------------------------------------------------------------------
+if BUILDING: update_interface()  # Запуск функции, если включён отладочный флаг!!!
 
 
 def button_style(name_button: str):

@@ -1,61 +1,15 @@
-from settings import *
+import matplotlib.pyplot
+import matplotlib.pyplot as plt
 
-BUFFER = list()
-SENSORS = (
-    "Температура в основании ПЭД",
-    "Давление на приёме",
-    "Состояние насоса (вкл/выкл)",
-    "Давление устьевое",
-    "Подача жидкости",
-    "Перегруз",
-    "Недогруз",
-    "Низкое сопротивление изоляции",
-    "Отсутствие напряжения",
-    "Блокировка",
-    "Деблокировка",
-    "Включение насоса",
-    "Выключение насоса"
-)
+from settings import *
+from objects import Events
+
 
 DB = sqlite3.connect("sensors.db")  # Подключение БД
 DB_cursor = DB.cursor()
 
 DB_cursor.execute("DELETE FROM 'values'")  # Удаление записей в таблице БД
 DB.commit()
-
-
-def normal_law(begin: float, end: float, amount: int):
-    scale = end - begin
-    values = [random.random() for _ in range(amount)]
-    return round(sum(values) / amount * scale + begin, 1)
-
-
-def uniform_law(begin: float, end: float):
-    scale = end - begin
-    return round(random.random() * scale + begin, 1)
-
-
-def logic_signal(event_chance: float):
-    return 1 if random.random() <= event_chance else 0
-
-
-def generation():
-    values = [
-        normal_law(5, 55, 12),      # 1
-        uniform_law(0, 2),          # 2
-        logic_signal(0.8),          # 3
-        uniform_law(0, 1.5),        # 4
-        normal_law(0, 400, 12),     # 5
-        logic_signal(0.7),          # 6
-        logic_signal(0.8),          # 7
-        logic_signal(0.8),          # 8
-        logic_signal(0.8),          # 9
-        logic_signal(0.8),          # 10
-        logic_signal(0.8),          # 11
-        logic_signal(0.7),          # 12
-        logic_signal(0.7)           # 13
-    ]
-    return values
 
 
 def insert_to_database(rows: list[list]):
@@ -125,14 +79,53 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.packets = {'sent': 0, 'unsent': 0}
         self.times = {'connected': 0, "unconnected": 0}
 
+        self.events = Events(self.list_events)
+
         self.button_start.clicked.connect(self.on_click_button_start)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
-        self.button_connection.clicked.connect(self.on_click_button_connection)
 
-        self.on_click_button_connection()
-        self.text_log.clear()
+        self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
+
         self.resize_table()
+
+    def on_selection_changed_list_events(self, item: QtWidgets.QListWidgetItem):
+        self.list_events.setCurrentItem(item)
+        self.events.states[self.list_events.currentRow()] = item.checkState()
+
+        self.plot_timeline()
+
+
+    def plot_timeline(self):
+        titles = self.events.titles
+        x = self.events.states
+        y = range(1, len(x) + 1)
+        fig: matplotlib.pyplot.Figure
+        ax: matplotlib.pyplot.Axes
+        fig, ax = plt.subplots()
+        ax.set(xlim=(0, 20), ylim=(0, len(x) + 1))
+
+        for point_x, point_y, title in zip(x, y, titles):
+            ax.plot([0, point_x], [point_y, point_y], linewidth=20)
+            #ax.annotate(title, (point_x, point_y))
+
+        # fig, ax = plt.subplots(figsize=(12, 8))
+        # bars = plt.barh(y, x, color="navy")
+
+        ax.spines[['right', 'left']].set_visible(False)
+        #ax.xaxis.set_visible(False)
+        #ax.yaxis.set_visible(False)
+        ax.grid(which='major', color='k', linestyle='--')
+
+        # ax.bar_label(bars, y, padding=0, color='white',
+        #              fontsize=12, label_type='center', fmt='%.1f%%',
+        #              fontweight='bold')
+
+        plt.savefig(f"fig.png")
+
+        self.label_plot.clear()
+        self.label_plot.setPixmap(QPixmap(f"fig.png"))
+
 
     def write_to_table(self, table: QTableWidget, values: list):
         table_name = table.objectName()
@@ -149,35 +142,30 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
                     table.setItem(i, j, QTableWidgetItem(str(value)))
 
     def resize_table(self):
-        current_header = self.table_current.horizontalHeader()
+        #current_header = self.table_current.horizontalHeader()
         buffer_header = self.table_buffer.horizontalHeader()
 
-        [current_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(2)]
+        #[current_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(2)]
         [buffer_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(10)]
 
-    def on_click_button_connection(self):
-        if self.connection:
-            self.connection = False
-            self.button_connection.setText("Вкл. связь")
-            self.text_log.append("УСТАНОВЛЕН ПРИНУДИТЕЛЬНЫЙ ОБРЫВ СВЯЗИ.")
-        else:
-            self.connection = True
-            self.button_connection.setText("Выкл. связь")
-            self.text_log.append("ПРИНУДИТЕЛЬНЫЙ ОБРЫВ СВЯЗИ УБРАН.")
 
     def on_click_button_start(self):
-        if self.timer.isActive():
-            self.timer.stop()
-            self.button_start.setText("Старт")
+        self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
-            self.text_log.append("За время работы:")
-            self.text_log.append(f"{self.packets['sent']} пакетов было передано.")
-            self.text_log.append(f"{self.packets['unsent']} пакетов было утеряно.")
-            self.text_log.append(f"{round(self.times['connected'], 2)} минут была связь.")
-            self.text_log.append(f"{round(self.times['unconnected'], 2)} минут связь отсутствовала.")
-        else:
-            self.button_start.setText("Стоп")
-            self.timer.start(1000)
+
+
+        # if self.timer.isActive():
+        #     self.timer.stop()
+        #     self.button_start.setText("Старт")
+        #
+        #     self.text_log.append("За время работы:")
+        #     self.text_log.append(f"{self.packets['sent']} пакетов было передано.")
+        #     self.text_log.append(f"{self.packets['unsent']} пакетов было утеряно.")
+        #     self.text_log.append(f"{round(self.times['connected'], 2)} минут была связь.")
+        #     self.text_log.append(f"{round(self.times['unconnected'], 2)} минут связь отсутствовала.")
+        # else:
+        #     self.button_start.setText("Стоп")
+        #     self.timer.start(1000)
 
     def starting(self):
         global BUFFER
