@@ -100,29 +100,35 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         titles = self.events.titles
         x = self.events.states
         y = range(1, len(x) + 1)
+
+        plt.rc('font', size=8)
+
         fig: matplotlib.pyplot.Figure
         ax: matplotlib.pyplot.Axes
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(1)
+
+        plt.setp(ax, yticks=[*range(1, len(titles) + 1)], yticklabels=titles)
+
         ax.set(xlim=(0, 20), ylim=(0, len(x) + 1))
+        ax.locator_params(axis="x", nbins=20)
 
         for point_x, point_y, title in zip(x, y, titles):
-            ax.plot([0, point_x], [point_y, point_y], linewidth=20)
-            #ax.annotate(title, (point_x, point_y))
+            ax.plot([0, point_x], [point_y, point_y], label=title, linewidth=10)
 
-        # fig, ax = plt.subplots(figsize=(12, 8))
-        # bars = plt.barh(y, x, color="navy")
-
+        #ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
         ax.spines[['right', 'left']].set_visible(False)
         #ax.xaxis.set_visible(False)
         #ax.yaxis.set_visible(False)
+
         ax.grid(which='major', color='k', linestyle='--')
 
         # ax.bar_label(bars, y, padding=0, color='white',
         #              fontsize=12, label_type='center', fmt='%.1f%%',
         #              fontweight='bold')
 
+        plt.tight_layout()
         plt.savefig(f"fig.png")
-
         self.label_plot.clear()
         self.label_plot.setPixmap(QPixmap(f"fig.png"))
 
