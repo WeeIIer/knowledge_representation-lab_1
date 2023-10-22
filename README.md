@@ -6,7 +6,7 @@
 
 ---
 
-Команда для перехода в репозиторий Git  
+Команда для перехода в репозиторий Git:
 - `cd /d/VADIM/Python/SFedU/third_term/knowledge_representation/lab_1`
 
 ---
