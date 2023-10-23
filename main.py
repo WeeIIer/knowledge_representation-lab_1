@@ -72,49 +72,56 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.setupUi(self)
 
         self.events = Events(self.list_events)
+        self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
         self.button_start.clicked.connect(self.on_click_button_start)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
         self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
+        self.slider_user_time.valueChanged.connect(self.on_value_changed_slider_user_time)
 
         self.resize_table()
+
+    def on_value_changed_slider_user_time(self):
+        self.edit_user_time.setText(str(self.slider_user_time.value()))
 
     def on_selection_changed_list_events(self, item: QtWidgets.QListWidgetItem):
         self.list_events.setCurrentItem(item)
         self.events.states[self.list_events.currentRow()] = item.checkState()
 
-        self.plot_timeline()
-
-
     def plot_timeline(self):
-        titles = self.events.titles
-        x = self.events.states
-        y = range(1, len(x) + 1)
+        titles = [title for _, title, _ in self.events.plots.keys()]
+        y_axis = range(1, len(titles) + 1)
 
         plt.rc('font', size=8)
-
         fig: matplotlib.pyplot.Figure
         ax: matplotlib.pyplot.Axes
         fig, ax = plt.subplots(1)
+        plt.setp(ax, yticks=[*y_axis], yticklabels=titles)
 
-        plt.setp(ax, yticks=[*range(1, len(titles) + 1)], yticklabels=titles)
+        ticks_count, now = 20, self.events.now
+        past = now - ticks_count if now > ticks_count else 0
 
-        ticks_count = 20
-        if self.events.now > ticks_count:
-            past, now = self.events.now - ticks_count, self.events.now
-        else:
-            past, now = 0, self.events.now
-
-        ax.set(xlim=(past, now), ylim=(0, len(x) + 1))
+        ax.set(xlim=(past, now), ylim=(0, len(titles) + 1))
         ax.locator_params(axis="x", nbins=now - past)
 
-        for point_x, point_y, title in zip(x, y, titles):
-            ax.plot([0, point_x], [point_y, point_y], label=title, linewidth=10)
+        user_time = self.slider_user_time
+        user_time.setMinimum(0)
+        user_time.setMaximum(now - past)
+
+        self.edit_current_time.setText(str(now))
+        self.edit_user_time.setText(str(now - (now - past - user_time.value())))
+
+        for data, x_axis in self.events.plots.items():
+            i, _, rgb = data
+            y = y_axis[i]
+            for x in x_axis:
+                x_begin, x_end = x[0], x[-1]
+                ax.plot([x_begin, x_end], [y, y], linewidth=10, color=rgb)
 
         #ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
-        ax.spines[['right', 'left']].set_visible(False)
+        #ax.spines[['right', 'left']].set_visible(False)
         #ax.xaxis.set_visible(False)
         #ax.yaxis.set_visible(False)
 
@@ -126,6 +133,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
         plt.tight_layout()
         plt.savefig(f"fig.png")
+        plt.close()
         self.label_plot.clear()
         self.label_plot.setPixmap(QPixmap(f"fig.png"))
 
@@ -153,8 +161,6 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
 
     def on_click_button_start(self):
-        self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
-
         if self.timer.isActive():
             self.timer.stop()
             self.button_start.setText("Старт")
@@ -163,9 +169,11 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
             self.timer.start(1000)
 
     def starting(self):
-        self.plot_timeline()
-        #print(self.events.timeline)
         self.events.next()
+
+        self.plot_timeline()
+
+
 
 
     def show(self):
