@@ -89,7 +89,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         titles = [data.title for data in self.events.plots]
         y_axis = range(1, len(titles) + 1)
 
-        plt.rc('font', size=8)
+        plt.rc("font", size=5)
         fig: matplotlib.pyplot.Figure
         ax: matplotlib.pyplot.Axes
         fig, ax = plt.subplots(1)
@@ -115,23 +115,25 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
                 x_begin, x_end = x[0], x[-1]
                 ax.plot([x_begin, x_end], [y, y], linewidth=10, color=rgb)
 
+        ax.plot([*repeat(int(self.edit_user_time.text()), 2)], [0, len(titles) + 1], linewidth=3, color="red")
+
         #ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
         #ax.spines[['right', 'left']].set_visible(False)
         #ax.xaxis.set_visible(False)
         #ax.yaxis.set_visible(False)
 
-        ax.grid(which='major', color='k', linestyle='--')
+        ax.grid(which="major", color="k", linestyle="--")
 
         # ax.bar_label(bars, y, padding=0, color='white',
         #              fontsize=12, label_type='center', fmt='%.1f%%',
         #              fontweight='bold')
 
         plt.tight_layout()
-        plt.savefig(f"fig.png")
+        plt.savefig("fig.png")
         plt.close()
         self.label_plot.clear()
-        self.label_plot.setPixmap(QPixmap(f"fig.png"))
+        self.label_plot.setPixmap(QPixmap("fig.png"))
 
 
     def write_to_table(self, table: QTableWidget, values: list):

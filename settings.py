@@ -6,6 +6,7 @@ import datetime
 import os
 import sys
 from collections import namedtuple
+from itertools import repeat
 
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QHeaderView, QTableWidgetItem
 from PyQt5.QtGui import QPixmap, QPalette, QColor
