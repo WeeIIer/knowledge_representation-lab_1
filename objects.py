@@ -36,3 +36,20 @@ class Events:
                     x_axis.append([self.now])
 
         #print(self.plots.values())
+
+
+# class Legend:
+#     def __init__(self, layout: QtWidgets.QVBoxLayout, titles: Iterable):
+#         self.layout = layout
+#         self.titles = titles
+#
+#         self.update()
+#
+#     def update(self):
+#         for title in self.titles:
+#             label = QtWidgets.QLabel()
+#             label.setText(title)
+#             label.setWordWrap(True)
+#             self.layout.addWidget(label)
+#
+#             print(label.width())

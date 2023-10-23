@@ -74,6 +74,10 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.events = Events(self.list_events)
         self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
+        # self.legend = Legend(self.vertical_legend, (data.title for data in self.events.plots))  # Plot legend
+        # self.label.setMinimumWidth(self.frame_legen.width())
+        # print(self.label.width())
+
         self.button_start.clicked.connect(self.on_click_button_start)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
@@ -89,10 +93,13 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         titles = [data.title for data in self.events.plots]
         y_axis = range(1, len(titles) + 1)
 
-        plt.rc("font", size=5)
+        plt.rc("font", size=8)
+        plt.rcParams["font.family"] = "Calibri"
+
         fig: matplotlib.pyplot.Figure
         ax: matplotlib.pyplot.Axes
-        fig, ax = plt.subplots(1)
+        fig, ax = plt.subplots(figsize=(9, 6))
+        #plt.setp(ax, yticks=[*y_axis], yticklabels=repeat('', len(y_axis)))
         plt.setp(ax, yticks=[*y_axis], yticklabels=titles)
 
         ticks_count, now = 20, self.events.now
@@ -130,7 +137,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         #              fontweight='bold')
 
         plt.tight_layout()
-        plt.savefig("fig.png")
+        plt.savefig("fig.png", transparent=True)
         plt.close()
         self.label_plot.clear()
         self.label_plot.setPixmap(QPixmap("fig.png"))

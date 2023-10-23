@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>988</width>
-    <height>725</height>
+    <width>1084</width>
+    <height>759</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -306,6 +306,9 @@
           <string>Наблюдатель</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
           <property name="leftMargin">
            <number>10</number>
           </property>
@@ -319,16 +322,52 @@
            <number>10</number>
           </property>
           <item>
-           <widget class="QSlider" name="slider_user_time">
-            <property name="maximum">
-             <number>5</number>
-            </property>
+           <widget class="QSplitter" name="splitter_2">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
+            <property name="handleWidth">
+             <number>10</number>
             </property>
+            <widget class="QFrame" name="frame_3">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
+            <widget class="QSlider" name="slider_user_time">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>40</height>
+              </size>
+             </property>
+             <property name="maximum">
+              <number>5</number>
+             </property>
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="tickPosition">
+              <enum>QSlider::TicksAbove</enum>
+             </property>
+            </widget>
+            <widget class="QFrame" name="frame_4">
+             <property name="frameShape">
+              <enum>QFrame::NoFrame</enum>
+             </property>
+             <property name="frameShadow">
+              <enum>QFrame::Raised</enum>
+             </property>
+            </widget>
            </widget>
           </item>
          </layout>
@@ -347,7 +386,7 @@
        <property name="title">
         <string>События</string>
        </property>
-       <layout class="QHBoxLayout" name="horizontalLayout">
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <property name="spacing">
          <number>10</number>
         </property>
