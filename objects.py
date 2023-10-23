@@ -1,11 +1,13 @@
 from settings import *
-from itertools import repeat
+
+Plot = namedtuple("Plot", ["title", "rgb", "x_axis"])
 
 
 class Events:
     def __init__(self, list_events: QtWidgets.QListWidget):
         self.widget = list_events
-        self.plots: dict[str:list[list[int]]]
+
+        self.plots: list[Plot]
         self.states: list[int]
         self.now: int
 
@@ -13,24 +15,24 @@ class Events:
         rgb = lambda: (random.random(), random.random(), random.random())
 
         self.widget.clear()
-        self.plots = dict(((i, title, rgb()), []) for i, title in enumerate(titles, 0))
+        self.plots = [Plot(title, rgb(), []) for title in titles]
         self.states = []
         self.now = 0
 
-        for i, title, _ in self.plots.keys():
-            self.widget.addItem(title)
+        for i, data in enumerate(self.plots):
+            self.widget.addItem(data.title)
             self.widget.item(i).setCheckState(0)
             self.states.append(0)
 
     def next(self):
         self.now += 1
 
-        for data, plots in self.plots.items():
-            i, title, _ = data
+        for i, data in enumerate(self.plots):
+            _, _, x_axis = data
             if self.states[i]:
-                if plots and self.now - plots[-1][-1] == 1:
-                    plots[-1].append(self.now)
+                if x_axis and self.now - x_axis[-1][-1] == 1:
+                    x_axis[-1].append(self.now)
                 else:
-                    plots.append([self.now])
+                    x_axis.append([self.now])
 
         #print(self.plots.values())

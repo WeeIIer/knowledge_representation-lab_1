@@ -78,19 +78,15 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
         self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
-        self.slider_user_time.valueChanged.connect(self.on_value_changed_slider_user_time)
 
         self.resize_table()
-
-    def on_value_changed_slider_user_time(self):
-        self.edit_user_time.setText(str(self.slider_user_time.value()))
 
     def on_selection_changed_list_events(self, item: QtWidgets.QListWidgetItem):
         self.list_events.setCurrentItem(item)
         self.events.states[self.list_events.currentRow()] = item.checkState()
 
     def plot_timeline(self):
-        titles = [title for _, title, _ in self.events.plots.keys()]
+        titles = [data.title for data in self.events.plots]
         y_axis = range(1, len(titles) + 1)
 
         plt.rc('font', size=8)
@@ -112,8 +108,8 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.edit_current_time.setText(str(now))
         self.edit_user_time.setText(str(now - (now - past - user_time.value())))
 
-        for data, x_axis in self.events.plots.items():
-            i, _, rgb = data
+        for i, data in enumerate(self.events.plots):
+            _, rgb, x_axis = data
             y = y_axis[i]
             for x in x_axis:
                 x_begin, x_end = x[0], x[-1]
@@ -162,9 +158,11 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
     def on_click_button_start(self):
         if self.timer.isActive():
+            self.label_indicator.setStyleSheet("background-color: red;")
             self.timer.stop()
             self.button_start.setText("Старт")
         else:
+            self.label_indicator.setStyleSheet("background-color: green;")
             self.button_start.setText("Стоп")
             self.timer.start(1000)
 

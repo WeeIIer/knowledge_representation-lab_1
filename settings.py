@@ -5,7 +5,7 @@ import matplotlib
 import datetime
 import os
 import sys
-import numpy as np
+from collections import namedtuple
 
 from PyQt5.QtWidgets import QApplication, QWidget, QTableWidget, QHeaderView, QTableWidgetItem
 from PyQt5.QtGui import QPixmap, QPalette, QColor
