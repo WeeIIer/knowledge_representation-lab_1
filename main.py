@@ -5,11 +5,11 @@ from settings import *
 from objects import Events
 
 
-DB = sqlite3.connect("sensors.db")  # Подключение БД
-DB_cursor = DB.cursor()
-
-DB_cursor.execute("DELETE FROM 'values'")  # Удаление записей в таблице БД
-DB.commit()
+# DB = sqlite3.connect("sensors.db")  # Подключение БД
+# DB_cursor = DB.cursor()
+#
+# DB_cursor.execute("DELETE FROM 'values'")  # Удаление записей в таблице БД
+# DB.commit()
 
 
 def insert_to_database(rows: list[list]):
@@ -71,20 +71,11 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         super(MainWindow, self).__init__()
         self.setupUi(self)
 
-        self.sec = 1
-        self.time = datetime.datetime.today()
-        self.x = list()
-        self.y = list()
-        self.connection = False
-        self.packets = {'sent': 0, 'unsent': 0}
-        self.times = {'connected': 0, "unconnected": 0}
-
         self.events = Events(self.list_events)
 
         self.button_start.clicked.connect(self.on_click_button_start)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
-
         self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
 
         self.resize_table()
@@ -109,8 +100,14 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
         plt.setp(ax, yticks=[*range(1, len(titles) + 1)], yticklabels=titles)
 
-        ax.set(xlim=(0, 20), ylim=(0, len(x) + 1))
-        ax.locator_params(axis="x", nbins=20)
+        ticks_count = 20
+        if self.events.now > ticks_count:
+            past, now = self.events.now - ticks_count, self.events.now
+        else:
+            past, now = 0, self.events.now
+
+        ax.set(xlim=(past, now), ylim=(0, len(x) + 1))
+        ax.locator_params(axis="x", nbins=now - past)
 
         for point_x, point_y, title in zip(x, y, titles):
             ax.plot([0, point_x], [point_y, point_y], label=title, linewidth=10)
@@ -158,67 +155,18 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
     def on_click_button_start(self):
         self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
-
-
-        # if self.timer.isActive():
-        #     self.timer.stop()
-        #     self.button_start.setText("Старт")
-        #
-        #     self.text_log.append("За время работы:")
-        #     self.text_log.append(f"{self.packets['sent']} пакетов было передано.")
-        #     self.text_log.append(f"{self.packets['unsent']} пакетов было утеряно.")
-        #     self.text_log.append(f"{round(self.times['connected'], 2)} минут была связь.")
-        #     self.text_log.append(f"{round(self.times['unconnected'], 2)} минут связь отсутствовала.")
-        # else:
-        #     self.button_start.setText("Стоп")
-        #     self.timer.start(1000)
+        if self.timer.isActive():
+            self.timer.stop()
+            self.button_start.setText("Старт")
+        else:
+            self.button_start.setText("Стоп")
+            self.timer.start(1000)
 
     def starting(self):
-        global BUFFER
+        self.plot_timeline()
+        #print(self.events.timeline)
+        self.events.next()
 
-        time_step = self.double_time_step.value() * 100  # Перевод минут в секунды
-        connection_quality = self.double_connection_quality.value()
-        current_connection = random.random()
-        current_time = (self.time + datetime.timedelta(seconds=self.sec)).strftime("%H:%M:%S")
-        packet = generation() + [current_time]
-        print(packet)
-
-        if (current_connection <= connection_quality) and self.connection:  # Проверка связи
-            self.times["connected"] += self.double_time_step.value()
-            self.packets["sent"] += 1
-            if BUFFER:
-                insert_to_database(BUFFER)
-                self.packets["sent"] += len(BUFFER)
-                self.text_log.append("Буфер очищен.\nПериод восстановлен.")
-                BUFFER.clear()
-            insert_to_database([packet])
-            self.text_log.append(f"{current_time}: Данные отправлены в БД.")
-            self.label_indicator.setStyleSheet("background-color: green;")
-        else:
-            self.times["unconnected"] += self.double_time_step.value()
-            BUFFER.append(packet)
-            self.text_log.append(f"{current_time}: Данные отправлены в буфер.")
-            self.label_indicator.setStyleSheet("background-color: red;")
-
-        self.write_to_table(self.table_current, packet)  # Запись пакета в таблицы
-        self.write_to_table(self.table_buffer, BUFFER)
-
-        if len(BUFFER) == 10:  # Прореживание буфера
-            self.packets["unsent"] += 5
-            BUFFER = [row for i, row in enumerate(BUFFER, 0) if i % 2 == 0]
-            BUFFER.append(packet)
-
-        if len(self.x) > 10:  # Формирование списков для построения графиков
-            del self.x[0]
-            del self.y[0]
-        self.x.append(current_time)
-        self.y.append(packet[:-1])
-
-        plot(self.x, self.y)  # Отрисовка графиков
-        self.label_plot.clear()
-        self.label_plot.setPixmap(QPixmap(f"fig.png"))
-
-        self.sec += time_step  # Увеличение общего времени работы
 
     def show(self):
         super(MainWindow, self).show()
