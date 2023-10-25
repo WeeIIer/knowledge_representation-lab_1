@@ -10,6 +10,7 @@ class Events:
         self.plots: list[Plot]
         self.states: list[int]
         self.now: int
+        self.amount: int
 
         self.clear()
 
@@ -18,6 +19,7 @@ class Events:
         self.plots: list[Plot] = []
         self.states: list[int] = []
         self.now = 0
+        self.amount = 0
 
     def add(self, title: str):
         rgb = lambda: (random.random(), random.random(), random.random())
@@ -26,11 +28,13 @@ class Events:
         self.widget.addItem(title)
         self.widget.item(len(self.plots) - 1).setCheckState(0)
         self.states.append(0)
+        self.amount += 1
 
     def discard(self, index: int):
         del self.plots[index]
         self.widget.takeItem(index)
         del self.states[index]
+        self.amount -= 1
 
     def next(self):
         self.now += 1
@@ -47,5 +51,28 @@ class Events:
 
 
 class Tempors:
-    def __init__(self, table_tempors: QtWidgets.QTableWidget):
+    def __init__(self, table_tempors: QtWidgets.QTableWidget, events: Events):
+        super(Tempors, self).__init__(self)
         self.widget = table_tempors
+        self.widget.clear()
+        self.events = events
+
+        self.update()
+
+    def resize_table(self):
+        h_header = self.widget.horizontalHeader()
+        v_header = self.widget.verticalHeader()
+
+        [h_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(self.events.amount)]
+        [v_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(self.events.amount)]
+
+    def update(self):
+        titles = [data.title for data in self.events.plots]
+
+        self.widget.setRowCount(self.events.amount)
+        self.widget.setColumnCount(self.events.amount)
+
+        self.widget.setHorizontalHeaderLabels(titles)
+        self.widget.setVerticalHeaderLabels(titles)
+
+        self.resize_table()
