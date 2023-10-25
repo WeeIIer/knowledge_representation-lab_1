@@ -24,20 +24,29 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
         self.button_start.clicked.connect(self.on_click_button_start)
-        self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
-        self.button_add_event.clicked.connect(self.on_click_button_add_event)
+        self.list_events.itemClicked.connect(self.on_item_clicked_list_events)
+        self.list_events.doubleClicked.connect(self.on_double_clicked_list_events)
+
+        self.edit_add_event.returnPressed.connect(self.on_return_pressed_edit_add_event)
 
         self.resize_table()
 
-    def on_click_button_add_event(self):
-        new_event = self.edit_add_event.text()
-
-        if new_event.strip():
+    def on_return_pressed_edit_add_event(self):
+        new_event = self.edit_add_event.text().strip()
+        if new_event:
             self.events.add(new_event)
 
-    def on_selection_changed_list_events(self, item: QtWidgets.QListWidgetItem):
+            splits = new_event.split()
+            if splits[-1].isdigit():
+                splits.append(str(int(splits.pop()) + 1))
+                self.edit_add_event.setText(' '.join(splits))
+
+    def on_item_clicked_list_events(self, item: QtWidgets.QListWidgetItem):
         self.list_events.setCurrentItem(item)
         self.events.states[self.list_events.currentRow()] = item.checkState()
+
+    def on_double_clicked_list_events(self):
+        self.events.discard(self.list_events.currentRow())
 
     def plot_timeline(self):
         titles = [data.title for data in self.events.plots]

@@ -27,6 +27,11 @@ class Events:
         self.widget.item(len(self.plots) - 1).setCheckState(0)
         self.states.append(0)
 
+    def discard(self, index: int):
+        del self.plots[index]
+        self.widget.takeItem(index)
+        del self.states[index]
+
     def next(self):
         self.now += 1
 
