@@ -18,7 +18,6 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.setupUi(self)
 
         self.events = Events(self.list_events)
-        self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
         self.splitter.restoreState(SETTINGS.value("splitterSizes"))
 
@@ -26,8 +25,15 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.timer.timeout.connect(self.starting)
         self.button_start.clicked.connect(self.on_click_button_start)
         self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
+        self.button_add_event.clicked.connect(self.on_click_button_add_event)
 
         self.resize_table()
+
+    def on_click_button_add_event(self):
+        new_event = self.edit_add_event.text()
+
+        if new_event.strip():
+            self.events.add(new_event)
 
     def on_selection_changed_list_events(self, item: QtWidgets.QListWidgetItem):
         self.list_events.setCurrentItem(item)

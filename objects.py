@@ -11,18 +11,21 @@ class Events:
         self.states: list[int]
         self.now: int
 
-    def update_widget_events(self, titles):
-        rgb = lambda: (random.random(), random.random(), random.random())
+        self.clear()
 
+    def clear(self):
         self.widget.clear()
-        self.plots = [Plot(title, rgb(), []) for title in titles]
-        self.states = []
+        self.plots: list[Plot] = []
+        self.states: list[int] = []
         self.now = 0
 
-        for i, data in enumerate(self.plots):
-            self.widget.addItem(data.title)
-            self.widget.item(i).setCheckState(0)
-            self.states.append(0)
+    def add(self, title: str):
+        rgb = lambda: (random.random(), random.random(), random.random())
+
+        self.plots.append(Plot(title, rgb(), []))
+        self.widget.addItem(title)
+        self.widget.item(len(self.plots) - 1).setCheckState(0)
+        self.states.append(0)
 
     def next(self):
         self.now += 1
