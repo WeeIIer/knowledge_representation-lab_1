@@ -24,7 +24,7 @@ pyinstaller --onefile --icon=icon.ico --noconsole --name "Sensors" --clean main.
 pyrcc5 -o resources.py resources.qrc
 """
 
-
+SETTINGS = QtCore.QSettings("settings.ini", QtCore.QSettings.IniFormat)
 BUILDING = True  # Флаг, отвечающий за отладочные функции
 DIRNAME, _ = os.path.split(os.path.realpath(__file__))  # Путь к папке с исполняемым файлом
 matplotlib.use("agg")

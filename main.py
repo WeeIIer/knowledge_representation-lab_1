@@ -12,60 +12,6 @@ from objects import Events
 # DB.commit()
 
 
-def insert_to_database(rows: list[list]):
-    for row in rows:
-        sql_request = "INSERT INTO 'values' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-        DB_cursor.execute(sql_request, row)
-        DB.commit()
-
-
-def plot(x: list, y: list):
-    lims = [
-        (5, 55),
-        (0, 2),
-        (0, 1),
-        (0, 1.5),
-        (0, 400),
-        (0, 1),
-        (0, 1),
-        (0, 1),
-        (0, 1),
-        (0, 1),
-        (0, 1),
-        (0, 1),
-        (0, 1)
-    ]
-
-    figure, axis = plt.subplots(13, 1)
-    figure.set_figwidth(10)
-    figure.set_figheight(12)
-    figure.set_dpi(100)
-
-    for i in range(13):
-        axis[i].plot(x, [col[i] for col in y], color="red", linewidth=2)
-        axis[i].set_ylim(lims[i][0] - 0.1, lims[i][1] + 0.1)
-        axis[i].set_title(i + 1, x=-0.05, y=0.25)
-        axis[i].xaxis.set_tick_params(labelsize=8)
-        if i < 12:
-            axis[i].set_xticklabels([])
-        #axis[i].margins(x=0)
-        #axis[i].get_xaxis().set_visible(False)
-        axis[i].get_yaxis().set_visible(False)
-        axis[i].grid(which='major', color='k', linestyle='-')
-        #axis[i].grid(axis="x", linewidth=1)
-
-        #axis[i].spines["top"].set_color("k")
-        #axis[i].spines["top"].set_linestyle(":")
-        #axis[i].spines["bottom"].set_color("k")
-        #axis[i].spines["bottom"].set_linestyle(":")
-        axis[i].spines["left"].set_visible(False)
-        axis[i].spines["right"].set_visible(False)
-
-    plt.subplots_adjust(wspace=0, hspace=0)
-    plt.savefig(f"fig.png", bbox_inches='tight', pad_inches=0, transparent=True)
-    #plt.show()
-
-
 class MainWindow(QWidget, main_window_form.Ui_main_window):
     def __init__(self):
         super(MainWindow, self).__init__()
@@ -74,13 +20,11 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.events = Events(self.list_events)
         self.events.update_widget_events(f"Событие {i}" for i in range(1, 6))
 
-        # self.legend = Legend(self.vertical_legend, (data.title for data in self.events.plots))  # Plot legend
-        # self.label.setMinimumWidth(self.frame_legen.width())
-        # print(self.label.width())
+        self.splitter.restoreState(SETTINGS.value("splitterSizes"))
 
-        self.button_start.clicked.connect(self.on_click_button_start)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
+        self.button_start.clicked.connect(self.on_click_button_start)
         self.list_events.itemClicked.connect(self.on_selection_changed_list_events)
 
         self.resize_table()
@@ -180,8 +124,10 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
         self.plot_timeline()
 
+    def closeEvent(self, a0):
+        super(MainWindow, self).closeEvent(a0)
 
-
+        SETTINGS.setValue("splitterSizes", self.splitter.saveState())
 
     def show(self):
         super(MainWindow, self).show()
