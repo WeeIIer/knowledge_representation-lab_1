@@ -46,18 +46,6 @@ class Events:
         #print(self.plots.values())
 
 
-# class Legend:
-#     def __init__(self, layout: QtWidgets.QVBoxLayout, titles: Iterable):
-#         self.layout = layout
-#         self.titles = titles
-#
-#         self.update()
-#
-#     def update(self):
-#         for title in self.titles:
-#             label = QtWidgets.QLabel()
-#             label.setText(title)
-#             label.setWordWrap(True)
-#             self.layout.addWidget(label)
-#
-#             print(label.width())
+class Tempors:
+    def __init__(self, table_tempors: QtWidgets.QTableWidget):
+        self.widget = table_tempors

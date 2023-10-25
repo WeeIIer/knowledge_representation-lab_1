@@ -2,7 +2,7 @@ import matplotlib.pyplot
 import matplotlib.pyplot as plt
 
 from settings import *
-from objects import Events
+from objects import Events, Tempors
 
 
 # DB = sqlite3.connect("sensors.db")  # Подключение БД
@@ -18,6 +18,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.setupUi(self)
 
         self.events = Events(self.list_events)
+        self.tempors = Tempors(self.table_tempors)
 
         self.splitter.restoreState(SETTINGS.value("splitterSizes"))
 
@@ -29,7 +30,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
         self.edit_add_event.returnPressed.connect(self.on_return_pressed_edit_add_event)
 
-        self.resize_table()
+        #self.resize_table()
 
     def on_return_pressed_edit_add_event(self):
         new_event = self.edit_add_event.text().strip()
