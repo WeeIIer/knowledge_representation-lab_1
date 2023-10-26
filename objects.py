@@ -1,6 +1,6 @@
 from settings import *
 
-Plot = namedtuple("Plot", ["title", "rgb", "x_axis"])
+Plot = namedtuple("Plot", ["title", "rgb", "x_axis", "timeline"])
 
 
 class Events:
@@ -24,9 +24,9 @@ class Events:
     def add(self, title: str):
         rgb = lambda: (random.random(), random.random(), random.random())
 
-        self.plots.append(Plot(title, rgb(), []))
+        self.plots.append(Plot(title, rgb(), [], [*repeat(0, self.now)]))
         self.widget.addItem(title)
-        self.widget.item(len(self.plots) - 1).setCheckState(0)
+        self.widget.item(self.amount).setCheckState(0)
         self.states.append(0)
         self.amount += 1
 
@@ -40,19 +40,36 @@ class Events:
         self.now += 1
 
         for i, data in enumerate(self.plots):
-            _, _, x_axis = data
+            y, _, x_axis, timeline = data
             if self.states[i]:
                 if x_axis and self.now - x_axis[-1][-1] == 1:
                     x_axis[-1].append(self.now)
                 else:
                     x_axis.append([self.now])
+                timeline.append(self.now)
+            else:
+                timeline.append(0)
 
-        #print(self.plots.values())
+    def pos(self, user_time: int):
+        for i, data in enumerate(self.plots):
+            title, _, _, timeline = data
+            timeline, chart = timeline[-21:], None
+
+            if timeline[user_time]:
+                chart = "-+-"
+            elif any(timeline[user_time + 1:]):
+                chart = "--+"
+            elif any(timeline[: user_time]):
+                chart = "+--"
+            else:
+                chart = "--+"
+
+            self.widget.item(i).setText(f"[{chart}] {title}")
+
 
 
 class Tempors:
     def __init__(self, table_tempors: QtWidgets.QTableWidget, events: Events):
-        super(Tempors, self).__init__(self)
         self.widget = table_tempors
         self.widget.clear()
         self.events = events

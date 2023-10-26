@@ -53,7 +53,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
     def plot_timeline(self):
         titles = [data.title for data in self.events.plots]
-        y_axis = range(1, len(titles) + 1)
+        y_axis = range(1, self.events.amount + 1)
 
         plt.rc("font", size=8)
         plt.rcParams["font.family"] = "Calibri"
@@ -67,24 +67,28 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         ticks_count, now = 20, self.events.now
         past = now - ticks_count if now > ticks_count else 0
 
-        ax.set(xlim=(past, now), ylim=(0, len(titles) + 1))
+        ax.set(xlim=(past, now), ylim=(0, self.events.amount + 1))
         ax.locator_params(axis="x", nbins=now - past)
 
-        user_time = self.slider_user_time
-        user_time.setMinimum(0)
-        user_time.setMaximum(now - past)
+        slider = self.slider_user_time
+        slider.setMinimum(0)
+        slider.setMaximum(now - past)
+
+        user_time = now - (now - past - slider.value())
+        self.events.pos(self.slider_user_time.value())
+
 
         self.edit_current_time.setText(str(now))
-        self.edit_user_time.setText(str(now - (now - past - user_time.value())))
+        self.edit_user_time.setText(str(user_time))
 
         for i, data in enumerate(self.events.plots):
-            _, rgb, x_axis = data
+            _, rgb, x_axis, _ = data
             y = y_axis[i]
             for x in x_axis:
                 x_begin, x_end = x[0], x[-1]
                 ax.plot([x_begin, x_end], [y, y], linewidth=10, color=rgb)
 
-        ax.plot([*repeat(int(self.edit_user_time.text()), 2)], [0, len(titles) + 1], linewidth=3, color="red")
+        ax.plot([*repeat(int(self.edit_user_time.text()), 2)], [0, self.events.amount + 1], linewidth=3, color="red")
 
         #ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
@@ -103,29 +107,6 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         plt.close()
         self.label_plot.clear()
         self.label_plot.setPixmap(QPixmap("fig.png"))
-
-
-    def write_to_table(self, table: QTableWidget, values: list):
-        table_name = table.objectName()
-
-        if table_name == "table_current":
-            for i, value in enumerate(values, 0):
-                table.setItem(i, 1, QTableWidgetItem(str(value)))
-
-        elif table_name == "table_buffer":
-            self.table_buffer.clear()
-            for j, row in enumerate(values, 0):
-                j = 9 - j
-                for i, value in enumerate(row, 0):
-                    table.setItem(i, j, QTableWidgetItem(str(value)))
-
-    def resize_table(self):
-        #current_header = self.table_current.horizontalHeader()
-        buffer_header = self.table_buffer.horizontalHeader()
-
-        #[current_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(2)]
-        [buffer_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(10)]
-
 
     def on_click_button_start(self):
         if self.timer.isActive():
