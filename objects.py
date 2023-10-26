@@ -24,7 +24,7 @@ class Events:
     def add(self, title: str):
         rgb = lambda: (random.random(), random.random(), random.random())
 
-        self.plots.append(Plot(title, rgb(), [], [*repeat(0, self.now)]))
+        self.plots.append(Plot(title, rgb(), [], [*repeat(0, self.now), 0]))
         self.widget.addItem(title)
         self.widget.item(self.amount).setCheckState(0)
         self.states.append(0)
@@ -43,13 +43,15 @@ class Events:
             y, _, x_axis, timeline = data
             if self.states[i]:
                 if x_axis and self.now - x_axis[-1][-1] == 1:
-                    x_axis[-1].append(self.now)
+                    new_points = [self.now]
+                    x_axis[-1].extend(new_points)
                 else:
-                    x_axis.append([self.now - 1, self.now])
-                timeline.append(self.now)
+                    new_points = [self.now - 1, self.now]
+                    x_axis.append(new_points)
+                    del timeline[-1]
+                timeline.extend(new_points)
             else:
                 timeline.append(0)
-
 
     def pos(self, user_time: int):
         for i, data in enumerate(self.plots):
