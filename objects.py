@@ -45,10 +45,11 @@ class Events:
                 if x_axis and self.now - x_axis[-1][-1] == 1:
                     x_axis[-1].append(self.now)
                 else:
-                    x_axis.append([self.now])
+                    x_axis.append([self.now - 1, self.now])
                 timeline.append(self.now)
             else:
                 timeline.append(0)
+
 
     def pos(self, user_time: int):
         for i, data in enumerate(self.plots):

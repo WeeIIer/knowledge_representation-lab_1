@@ -25,6 +25,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.starting)
         self.button_start.clicked.connect(self.on_click_button_start)
+        self.button_forward.clicked.connect(self.starting)
         self.list_events.itemClicked.connect(self.on_item_clicked_list_events)
         self.list_events.doubleClicked.connect(self.on_double_clicked_list_events)
 
@@ -113,10 +114,12 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
             self.label_indicator.setStyleSheet("background-color: red;")
             self.timer.stop()
             self.button_start.setText("Старт")
+            self.button_forward.setEnabled(True)
         else:
             self.label_indicator.setStyleSheet("background-color: green;")
             self.button_start.setText("Стоп")
             self.timer.start(1000)
+            self.button_forward.setEnabled(False)
 
     def starting(self):
         self.events.next()
