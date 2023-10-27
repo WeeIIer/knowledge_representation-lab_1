@@ -56,20 +56,19 @@ class Events:
 
     def pos(self, user_time: int):
         for i, data in enumerate(self.plots):
-            title, _, _, timeline = data
-            timeline, chart = timeline[-21:], None
+            title, _, x_axis, _ = data
+            event = get_available_event(self.now, x_axis)
 
-            if timeline[user_time]:
+            if event is None:
+                chart = "--+"
+            elif user_time in event:
                 chart = "-+-"
-            elif any(timeline[user_time + 1:]):
+            elif user_time < event[-1]:
                 chart = "--+"
-            elif any(timeline[: user_time]):
-                chart = "+--"
             else:
-                chart = "--+"
+                chart = "+--"
 
             self.widget.item(i).setText(f"[{chart}] {title}")
-
 
 
 class Tempors:
@@ -99,52 +98,112 @@ class Tempors:
         self.resize_table()
 
     def update_values(self):
-        table_rows = []
+        if self.events.plots:
+            for i, first_data in enumerate(self.events.plots):
+                first_event = get_available_event(self.events.now, first_data.x_axis)
 
-        for first_data in self.events.plots:
-            first_event = self.get_available_event(first_data.x_axis)
-            table_rows.append([])
+                for j, second_data in enumerate(self.events.plots):
+                    second_event = get_available_event(self.events.now, second_data.x_axis)
 
-            if first_event is None:
-                table_rows[-1].extend(repeat(None, self.events.amount))
-            else:
-                row = table_rows[-1]
-                for second_data in self.events.plots:
-                    second_event = self.get_available_event(second_data.x_axis)
-                    if second_event is None or first_data is second_data:
-                        row.append(None)
+                    if first_event is None or second_event is None or first_data is second_data:
+                        item = QTableWidgetItem("")
                     else:
-                        row.append(self.relation(first_event, second_event))
-                    #row.append(None if  else self.get_available_event(second_data.x_axis))
+                        item = QTableWidgetItem(self.__get_relation(first_event, second_event))
 
+                    self.widget.setItem(i, j, item)
 
-            print(first_data.title, table_rows[-1])
-
-    def get_available_event(self, x_axis: list):
-        left_border = self.events.now - 20 if self.events.now > 20 else 0
-
-        if x_axis:
-            event = x_axis[-1]
-            if event[0] >= left_border:
-                return event
-            else:
-                try:
-                    return event[event.index(left_border):]
-                except ValueError:
-                    return None
-        return None
-
-    def get_rates(self, event: list) -> Rates:
+    def __get_rates(self, event: list) -> Rates:
         return Rates(event[0], event[-1], len(event))
 
-    def relation(self, first_event: list, second_event: list):
-        first_rates, second_rates = self.get_rates(first_event), self.get_rates(second_event)
+    def __get_relation(self, first_event: list, second_event: list) -> str:
+        first_rates, second_rates = self.__get_rates(first_event), self.__get_rates(second_event)
 
-        # rts
-        if first_rates.right_border < second_rates.left_border:
-            return "rts1"
-        elif second_rates.right_border < first_rates.left_border:
-            return "rts2"
+        types = ("rts", "rtsn", "rtes", "rtel", "rter", "rte")
+        pos = 1 if first_rates.left_border < second_rates.left_border else 2
 
-        # rtsn
-        
+        conditions = (
+            any(  # rts
+                (
+                    first_rates.right_border < second_rates.left_border,
+                    second_rates.right_border < first_rates.left_border
+                )
+            ),
+            any(  # rtsn
+                (
+                    first_rates.right_border == second_rates.left_border,
+                    second_rates.right_border == first_rates.left_border
+                )
+            ),
+            any(  # rtes
+                (
+                    all(
+                        (
+                            first_rates.left_border < second_rates.left_border,
+                            first_rates.right_border < second_rates.right_border
+                        )
+                    ),
+                    all(
+                        (
+                            first_rates.left_border > second_rates.left_border,
+                            first_rates.right_border > second_rates.right_border
+                        )
+                    ),
+                    all(
+                        (
+                            first_rates.left_border == second_rates.left_border,
+                            first_rates.right_border == second_rates.right_border
+                        )
+                    )
+                )
+            ),
+            all(  # rtel
+                (
+                    first_rates.left_border == second_rates.left_border,
+                    first_rates.length != second_rates.length
+                )
+            ),
+            all(  # rter
+                (
+                    first_rates.right_border == second_rates.right_border,
+                    first_rates.length != second_rates.length
+                )
+            ),
+            any(  # rte
+                (
+                    all(
+                        (
+                            first_rates.left_border > second_rates.left_border,
+                            first_rates.right_border < second_rates.right_border
+                        )
+                    ),
+                    all(
+                        (
+                            first_rates.left_border < second_rates.left_border,
+                            first_rates.right_border > second_rates.right_border
+                        )
+                    )
+                )
+            )
+        )
+
+        try:
+            return f"{types[conditions.index(True)]}{pos}"
+        except ValueError:
+            return f"rtu{pos}"
+
+
+def get_available_event(now: int, x_axis: list) -> list | None:
+    left_border = now - 20 if now > 20 else 0
+
+    if x_axis:
+        event = x_axis[-1]
+        if event[0] >= left_border:
+            return event
+        else:
+            try:
+                return event[event.index(left_border):]
+            except ValueError:
+                return None
+    return None
+
+

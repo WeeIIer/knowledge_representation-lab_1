@@ -76,8 +76,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         slider.setMaximum(now - past)
 
         user_time = now - (now - past - slider.value())
-        self.events.pos(self.slider_user_time.value())
-
+        self.events.pos(user_time)
 
         self.edit_current_time.setText(str(now))
         self.edit_user_time.setText(str(user_time))
@@ -87,7 +86,8 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
             y = y_axis[i]
             for x in x_axis:
                 x_begin, x_end = x[0], x[-1]
-                ax.plot([x_begin, x_end], [y, y], linewidth=10, color=rgb)
+                transparency = 1.0 if x is x_axis[-1] else 0.2
+                ax.plot([x_begin, x_end], [y, y], linewidth=10, color=rgb, alpha=transparency)
 
         ax.plot([*repeat(int(self.edit_user_time.text()), 2)], [0, self.events.amount + 1], linewidth=3, color="red")
 
