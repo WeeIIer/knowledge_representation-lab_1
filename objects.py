@@ -1,6 +1,7 @@
 from settings import *
 
 Plot = namedtuple("Plot", ["title", "rgb", "x_axis", "timeline"])
+Rates = namedtuple("Rates", ["left_border", "right_border", "length"])
 
 
 class Events:
@@ -24,7 +25,7 @@ class Events:
     def add(self, title: str):
         rgb = lambda: (random.random(), random.random(), random.random())
 
-        self.plots.append(Plot(title, rgb(), [], [*repeat(0, self.now), 0]))
+        self.plots.append(Plot(title, rgb(), [], [*repeat("-", self.now), "-"]))
         self.widget.addItem(title)
         self.widget.item(self.amount).setCheckState(0)
         self.states.append(0)
@@ -51,7 +52,7 @@ class Events:
                     del timeline[-1]
                 timeline.extend(new_points)
             else:
-                timeline.append(0)
+                timeline.append("-")
 
     def pos(self, user_time: int):
         for i, data in enumerate(self.plots):
@@ -77,7 +78,7 @@ class Tempors:
         self.widget.clear()
         self.events = events
 
-        self.update()
+        self.update_structure()
 
     def resize_table(self):
         h_header = self.widget.horizontalHeader()
@@ -86,7 +87,7 @@ class Tempors:
         [h_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(self.events.amount)]
         [v_header.setSectionResizeMode(i, QHeaderView.Stretch) for i in range(self.events.amount)]
 
-    def update(self):
+    def update_structure(self):
         titles = [data.title for data in self.events.plots]
 
         self.widget.setRowCount(self.events.amount)
@@ -96,3 +97,54 @@ class Tempors:
         self.widget.setVerticalHeaderLabels(titles)
 
         self.resize_table()
+
+    def update_values(self):
+        table_rows = []
+
+        for first_data in self.events.plots:
+            first_event = self.get_available_event(first_data.x_axis)
+            table_rows.append([])
+
+            if first_event is None:
+                table_rows[-1].extend(repeat(None, self.events.amount))
+            else:
+                row = table_rows[-1]
+                for second_data in self.events.plots:
+                    second_event = self.get_available_event(second_data.x_axis)
+                    if second_event is None or first_data is second_data:
+                        row.append(None)
+                    else:
+                        row.append(self.relation(first_event, second_event))
+                    #row.append(None if  else self.get_available_event(second_data.x_axis))
+
+
+            print(first_data.title, table_rows[-1])
+
+    def get_available_event(self, x_axis: list):
+        left_border = self.events.now - 20 if self.events.now > 20 else 0
+
+        if x_axis:
+            event = x_axis[-1]
+            if event[0] >= left_border:
+                return event
+            else:
+                try:
+                    return event[event.index(left_border):]
+                except ValueError:
+                    return None
+        return None
+
+    def get_rates(self, event: list) -> Rates:
+        return Rates(event[0], event[-1], len(event))
+
+    def relation(self, first_event: list, second_event: list):
+        first_rates, second_rates = self.get_rates(first_event), self.get_rates(second_event)
+
+        # rts
+        if first_rates.right_border < second_rates.left_border:
+            return "rts1"
+        elif second_rates.right_border < first_rates.left_border:
+            return "rts2"
+
+        # rtsn
+        

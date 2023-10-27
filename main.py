@@ -37,7 +37,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         new_event = self.edit_add_event.text().strip()
         if new_event:
             self.events.add(new_event)
-            self.tempors.update()
+            self.tempors.update_structure()
 
             splits = new_event.split()
             if splits[-1].isdigit():
@@ -50,7 +50,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
     def on_double_clicked_list_events(self):
         self.events.discard(self.list_events.currentRow())
-        self.tempors.update()
+        self.tempors.update_structure()
 
     def plot_timeline(self):
         titles = [data.title for data in self.events.plots]
@@ -123,6 +123,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
     def starting(self):
         self.events.next()
+        self.tempors.update_values()
 
         self.plot_timeline()
 
