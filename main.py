@@ -1,15 +1,5 @@
-import matplotlib.pyplot
-import matplotlib.pyplot as plt
-
 from settings import *
 from objects import Events, Tempors
-
-
-# DB = sqlite3.connect("sensors.db")  # Подключение БД
-# DB_cursor = DB.cursor()
-#
-# DB_cursor.execute("DELETE FROM 'values'")  # Удаление записей в таблице БД
-# DB.commit()
 
 
 class MainWindow(QWidget, main_window_form.Ui_main_window):
@@ -30,8 +20,6 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.list_events.doubleClicked.connect(self.on_double_clicked_list_events)
 
         self.edit_add_event.returnPressed.connect(self.on_return_pressed_edit_add_event)
-
-        #self.resize_table()
 
     def on_return_pressed_edit_add_event(self):
         new_event = self.edit_add_event.text().strip()
@@ -62,7 +50,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         fig: matplotlib.pyplot.Figure
         ax: matplotlib.pyplot.Axes
         fig, ax = plt.subplots(figsize=(9, 6))
-        #plt.setp(ax, yticks=[*y_axis], yticklabels=repeat('', len(y_axis)))
+
         plt.setp(ax, yticks=[*y_axis], yticklabels=titles)
 
         ticks_count, now = 20, self.events.now
@@ -91,21 +79,13 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
 
         ax.plot([*repeat(int(self.edit_user_time.text()), 2)], [0, self.events.amount + 1], linewidth=3, color="red")
 
-        #ax.yaxis.set_label_position("right")
         ax.yaxis.tick_right()
-        #ax.spines[['right', 'left']].set_visible(False)
-        #ax.xaxis.set_visible(False)
-        #ax.yaxis.set_visible(False)
-
         ax.grid(which="major", color="k", linestyle="--")
-
-        # ax.bar_label(bars, y, padding=0, color='white',
-        #              fontsize=12, label_type='center', fmt='%.1f%%',
-        #              fontweight='bold')
 
         plt.tight_layout()
         plt.savefig("fig.png", transparent=True)
         plt.close()
+
         self.label_plot.clear()
         self.label_plot.setPixmap(QPixmap("fig.png"))
 

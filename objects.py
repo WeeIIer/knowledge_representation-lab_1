@@ -205,5 +205,3 @@ def get_available_event(now: int, x_axis: list) -> list | None:
             except ValueError:
                 return None
     return None
-
-
