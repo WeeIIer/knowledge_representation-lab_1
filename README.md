@@ -6,11 +6,9 @@
 
 ---
 
-Команда для перехода в репозиторий Git:
-- `cd /d/VADIM/Python/SFedU/third_term/knowledge_representation/lab_1`
-
----
-
 Библиотеки для подключения (`pip install ...`):  
+- `random`  
 - `matplotlib`  
-- `pyqt5`
+- `os`  
+- `sys`  
+- `pyqt5`  
