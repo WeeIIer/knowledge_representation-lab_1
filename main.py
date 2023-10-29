@@ -70,7 +70,7 @@ class MainWindow(QWidget, main_window_form.Ui_main_window):
         self.edit_user_time.setText(str(user_time))
 
         for i, data in enumerate(self.events.plots):
-            _, rgb, x_axis, _ = data
+            _, rgb, x_axis = data
             y = y_axis[i]
             for x in x_axis:
                 x_begin, x_end = x[0], x[-1]

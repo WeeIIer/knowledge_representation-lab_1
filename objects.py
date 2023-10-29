@@ -1,6 +1,6 @@
 from settings import *
 
-Plot = namedtuple("Plot", ["title", "rgb", "x_axis", "timeline"])
+Plot = namedtuple("Plot", ["title", "rgb", "x_axis"])
 Rates = namedtuple("Rates", ["left_border", "right_border", "length"])
 
 
@@ -23,9 +23,9 @@ class Events:
         self.amount = 0
 
     def add(self, title: str):
-        rgb = lambda: (random.random(), random.random(), random.random())
+        rgb = lambda: (round(random.random(), 2), round(random.random(), 2), round(random.random(), 2))
 
-        self.plots.append(Plot(title, rgb(), [], [*repeat("-", self.now), "-"]))
+        self.plots.append(Plot(title, rgb(), []))
         self.widget.addItem(title)
         self.widget.item(self.amount).setCheckState(0)
         self.states.append(0)
@@ -41,7 +41,7 @@ class Events:
         self.now += 1
 
         for i, data in enumerate(self.plots):
-            y, _, x_axis, timeline = data
+            y, _, x_axis = data
             if self.states[i]:
                 if x_axis and self.now - x_axis[-1][-1] == 1:
                     new_points = [self.now]
@@ -49,14 +49,12 @@ class Events:
                 else:
                     new_points = [self.now - 1, self.now]
                     x_axis.append(new_points)
-                    del timeline[-1]
-                timeline.extend(new_points)
-            else:
-                timeline.append("-")
+
+        # print(*self.plots, sep="\n", end="\n\n")
 
     def pos(self, user_time: int):
         for i, data in enumerate(self.plots):
-            title, _, x_axis, _ = data
+            title, _, x_axis = data
             event = get_available_event(self.now, x_axis)
 
             if event is None:
