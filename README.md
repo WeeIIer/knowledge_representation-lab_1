@@ -7,8 +7,5 @@
 ---
 
 Библиотеки для подключения (`pip install ...`):  
-- `random`  
 - `matplotlib`  
-- `os`  
-- `sys`  
 - `pyqt5`  
